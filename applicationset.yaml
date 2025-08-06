@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nginx-multienv
+  namespace: argocd
+spec:
+  generators:
+    - directory:#can use git hre git is new directory s old will do scm polling and eventually add new folder if exist wathes the repo
+        repoURL: https://github.com/your-username/nginx-deployment-lab.git
+        revision: HEAD
+        directories:
+          - path: dev
+          - path: staging
+          - path: production
+  template:
+    metadata:
+      name: '{{path}}-nginx'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/your-username/nginx-deployment-lab.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
